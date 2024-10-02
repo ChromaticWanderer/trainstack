@@ -1,0 +1,41 @@
+import os
+import json
+import shutil
+from sklearn.model_selection import train_test_split
+
+# Specify the source folder where all images are currently located
+source_folder = r'C:\Users\jared\Documents\Files\BarcelosStack'
+# Specify the destination folder where you want to create the dataset structure
+destination_folder = r'C:\Users\jared\Documents\Files\BarcelosStackDivided'
+
+# Get all image files
+image_files = [f for f in os.listdir(source_folder) if f.endswith(('.png', '.jpg', '.jpeg'))]
+
+# Split the data
+train_files, temp_files = train_test_split(image_files, test_size=0.3, random_state=42)
+val_files, test_files = train_test_split(temp_files, test_size=0.5, random_state=42)
+
+# Create the folder structure
+for folder in ['train', 'val', 'test']:
+    os.makedirs(os.path.join(destination_folder, folder, 'images'), exist_ok=True)
+
+# Function to move files and create captions
+def process_set(files, set_name):
+    captions = {}
+    for file in files:
+        src = os.path.join(source_folder, file)
+        dst = os.path.join(destination_folder, set_name, 'images', file)
+        shutil.copy2(src, dst)
+        # For this example, we're using the filename as a placeholder caption
+        # In a real scenario, you'd replace this with actual captions
+        captions[file] = f"Caption for {file}"
+    
+    with open(os.path.join(destination_folder, set_name, 'captions.json'), 'w') as f:
+        json.dump(captions, f, indent=2)
+
+# Process each set
+process_set(train_files, 'train')
+process_set(val_files, 'val')
+process_set(test_files, 'test')
+
+print("Dataset preparation complete. Files have been organized into train, validation, and test sets.")
